@@ -1,0 +1,210 @@
+<title>Humor Styles Mini Quiz</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: a single reading column; statements grouped in fours-of-three, a sticky score strip, then a results board with a 2×2 style map */
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --fg:#1d1c22; --muted:#66636f; --line:#dedbe4;
+  --magnet:#e0892a; --sniper:#4f5bd5; --standup:#d6455d; --sweet:#2e9a78;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#16151b; --surface:#201f27; --fg:#f0eef5; --muted:#a29fae; --line:#353340;
+  --magnet:#f0a24f; --sniper:#8a93f0; --standup:#f0778b; --sweet:#52c49f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#16151b; --surface:#201f27; --fg:#f0eef5; --muted:#a29fae; --line:#353340;
+  --magnet:#f0a24f; --sniper:#8a93f0; --standup:#f0778b; --sweet:#52c49f; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 80px}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:clamp(2.2rem,7vw,3.4rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.6rem;font-weight:800}
+.eyebrow{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:700}
+header{display:flex;flex-direction:column;gap:14px}
+header p{margin:0;max-width:62ch;color:var(--muted)}
+.scale-key{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);gap:12px}
+
+.group{display:flex;flex-direction:column;gap:2px}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 18px 16px;display:flex;flex-direction:column;gap:12px}
+.q-text{display:flex;gap:12px;align-items:baseline}
+.q-num{font-family:var(--display);font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;min-width:1.6em}
+.q-text p{margin:0;min-width:0}
+.opts{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding-left:calc(1.6em + 12px)}
+.opts input{position:absolute;opacity:0;pointer-events:none}
+.opts label{display:flex;align-items:center;justify-content:center;height:42px;border:1.5px solid var(--line);border-radius:8px;
+  cursor:pointer;font-weight:700;font-variant-numeric:tabular-nums;user-select:none;transition:background .12s,border-color .12s}
+.opts label:hover{border-color:var(--muted)}
+.opts input:focus-visible + label{outline:3px solid var(--fg);outline-offset:2px}
+.opts input:checked + label{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.q.done{border-color:color-mix(in srgb,var(--fg) 30%,var(--line))}
+@media (max-width:480px){.opts{padding-left:0}}
+
+.strip{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;
+  display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.bar{flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--fg);transition:width .2s}
+.strip b{font-variant-numeric:tabular-nums;font-size:.9rem;white-space:nowrap}
+
+.results{display:flex;flex-direction:column;gap:24px}
+.results .lead{margin:0;font-size:1.1rem}
+.results .lead strong{font-family:var(--display);font-size:1.5rem}
+.scores{display:flex;flex-direction:column;gap:12px}
+.row{display:grid;grid-template-columns:110px 1fr 56px;align-items:center;gap:12px}
+.row .name{font-family:var(--display);font-weight:800}
+.row .track{height:22px;background:var(--line);border-radius:5px;overflow:hidden}
+.row .fill{height:100%;width:0;border-radius:5px;transition:width .35s}
+.row .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.row.top .name::after{content:" ★"}
+.note{font-size:.88rem;color:var(--muted);margin:0}
+
+.map-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:600px){.map-wrap{grid-template-columns:1fr}}
+svg{width:100%;height:auto;max-width:360px;display:block}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.cards{grid-template-columns:1fr}}
+.card{border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:6px;background:var(--surface)}
+.card h3{font-size:1.15rem;display:flex;align-items:center;gap:8px}
+.card h3 i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.card p{margin:0;font-size:.95rem}
+.card .tags{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.card.top{border-width:2px;border-color:var(--fg)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+button{font:inherit;font-weight:700;padding:10px 16px;border-radius:8px;border:1.5px solid var(--fg);background:transparent;color:var(--fg);cursor:pointer}
+button.primary{background:var(--fg);color:var(--bg)}
+button:focus-visible{outline:3px solid var(--fg);outline-offset:2px}
+footer{font-size:.85rem;color:var(--muted)}
+footer a{color:inherit}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">From <i>Humor, Seriously</i> · Aaker &amp; Bagdonas</span>
+    <h1>Humor Styles Mini Quiz</h1>
+    <p>Twelve statements, a quick read on which of the four humor styles sounds most like you. Score each one from 1 to 5. Your results update as you go.</p>
+    <div class="scale-key"><span>1 = strongly disagree</span><span>5 = strongly agree</span></div>
+  </header>
+
+  <div class="strip" aria-live="polite"><div class="bar"><span id="prog"></span></div><b id="count">0 of 12 answered</b></div>
+
+  <form id="quiz" class="group"></form>
+
+  <section class="results" id="results" aria-labelledby="res-h">
+    <span class="eyebrow">Your results</span>
+    <h2 id="res-h">Your humor style</h2>
+    <p class="lead" id="lead">Answer all twelve statements to see your style. Scores fill in below as you go.</p>
+    <div class="scores" id="scores"></div>
+    <p class="note">Each style is the sum of three statements, so scores run from 3 to 15. The higher the score, the more you tend to show that style.</p>
+
+    <div class="map-wrap">
+      <svg id="map" viewBox="0 0 320 320" role="img" aria-label="Map of the four humor styles"></svg>
+      <p class="note">The styles sit on two spectrums. Expressive vs. subtle is how you deliver a joke. Affiliative vs. aggressive is the edge it carries. The dot shows where your four scores place you, taken from the gap between them on each spectrum.</p>
+    </div>
+
+    <div class="cards" id="cards"></div>
+
+    <div class="actions">
+      <button type="button" class="primary" id="copy">Copy my scores</button>
+      <button type="button" id="reset">Start over</button>
+    </div>
+    <p class="note" id="copied" hidden>Copied. Paste them into the chat to get a write-up of your style.</p>
+  </section>
+
+  <footer>The statements and scoring come from the book's Humor Styles Mini Quiz. For the full quiz, visit <a href="https://www.humorseriously.com" target="_blank" rel="noopener">humorseriously.com</a>.</footer>
+</div>
+
+<script>
+const Q=[
+ "My sense of humor is uplifting and wholesome; I am generous with laughter.",
+ "While saying something humorous, I often deliver it while smiling or laughing.",
+ "Others would describe my humor as animated, sometimes slapstick.",
+ "My sense of humor is dark and edgy; you have to earn my laughter.",
+ "When saying something humorous, I often deliver it with a straight face.",
+ "Others would describe my humor as dry and sarcastic, an acquired taste.",
+ "I enjoy being the center of attention when joking, and am confident riffing on the spot.",
+ "My humor is bold, irreverent, and roasting; I’m not afraid to ruffle a few feathers to get a laugh.",
+ "I have a thick skin for people making fun of me and don’t mind being the butt of a joke.",
+ "I prefer to plan out humor before I say it and am not interested in the spotlight.",
+ "My humor is understated and modest; I carefully consider how my humor will land on others before saying it.",
+ "I think that roasts, pranks, and teasing usually aren’t worth the risk of hurt feelings."];
+const S=[
+ {k:"magnet",name:"Magnet",items:[0,1,2],tags:"Expressive · Affiliative",
+  d:"Warm and uplifting. You laugh easily and generously, and you bring energy that makes a room feel lighter. Watch for moments that call for gravity."},
+ {k:"sniper",name:"Sniper",items:[3,4,5],tags:"Subtle · Aggressive",
+  d:"Dry, edgy and deadpan. Your timing is sharp and your laughs are earned. Know your audience, because sarcasm can land as a jab with people who don't know you yet."},
+ {k:"standup",name:"Stand-Up",items:[6,7,8],tags:"Expressive · Aggressive",
+  d:"Bold and quick on your feet. You like the spotlight, riff well and don't mind a roast in either direction. Check that the teasing still feels fun to the person on the other end."},
+ {k:"sweet",name:"Sweetheart",items:[9,10,11],tags:"Subtle · Affiliative",
+  d:"Earnest and understated. You think about how a joke will land before you tell it, and your humor builds people up. Let yourself take a small risk now and then."}];
+const ans=Array(12).fill(0);
+try{const s=JSON.parse(localStorage.getItem("hsq")||"null");if(Array.isArray(s)&&s.length===12)s.forEach((v,i)=>ans[i]=+v||0)}catch(e){}
+const save=()=>{try{localStorage.setItem("hsq",JSON.stringify(ans))}catch(e){}};
+
+const form=document.getElementById("quiz");
+Q.forEach((t,i)=>{
+  const d=document.createElement("fieldset");d.className="q";d.style.margin="0 0 10px";d.id="q"+i;
+  let o="";for(let v=1;v<=5;v++)o+=`<input type="radio" name="q${i}" id="q${i}v${v}" value="${v}"${ans[i]===v?" checked":""}><label for="q${i}v${v}">${v}</label>`;
+  d.innerHTML=`<div class="q-text"><span class="q-num">${i+1}</span><p>${t}</p></div><div class="opts" role="radiogroup" aria-label="Statement ${i+1} rating">${o}</div>`;
+  form.appendChild(d);
+});
+form.addEventListener("change",e=>{const m=e.target.name.match(/^q(\d+)$/);if(!m)return;ans[+m[1]]=+e.target.value;save();render()});
+
+const css=k=>getComputedStyle(document.documentElement).getPropertyValue("--"+k).trim();
+const sc=document.getElementById("scores"),cards=document.getElementById("cards");
+S.forEach(s=>{
+  sc.insertAdjacentHTML("beforeend",`<div class="row" id="r-${s.k}"><span class="name">${s.name}</span><div class="track"><div class="fill" style="background:var(--${s.k})"></div></div><span class="val">–</span></div>`);
+  cards.insertAdjacentHTML("beforeend",`<div class="card" id="c-${s.k}"><h3><i style="background:var(--${s.k})"></i>${s.name}</h3><span class="tags">${s.tags}</span><p>${s.d}</p></div>`);
+});
+
+function drawMap(pt){
+  const c={fg:css("fg"),muted:css("muted"),line:css("line")};
+  const q=(x,y,s)=>`<rect x="${x}" y="${y}" width="130" height="130" rx="8" fill="var(--${s.k})" fill-opacity=".16"/><text x="${x+65}" y="${y+70}" text-anchor="middle" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="17" fill="var(--${s.k})">${s.name}</text>`;
+  // columns: aggressive (left) | affiliative (right); rows: expressive (top) | subtle (bottom)
+  let h=q(30,30,S[2])+q(160,30,S[0])+q(30,160,S[1])+q(160,160,S[3]);
+  h+=`<line x1="160" y1="30" x2="160" y2="290" stroke="var(--muted)" stroke-width="1"/><line x1="30" y1="160" x2="290" y2="160" stroke="var(--muted)" stroke-width="1"/>`;
+  const lab=(x,y,t,r)=>`<text x="${x}" y="${y}" text-anchor="middle" font-size="11" letter-spacing="1.2" font-weight="700" fill="var(--muted)" ${r?`transform="rotate(${r} ${x} ${y})"`:""}>${t}</text>`;
+  h+=lab(160,20,"EXPRESSIVE")+lab(160,310,"SUBTLE")+lab(14,160,"AGGRESSIVE",-90)+lab(306,160,"AFFILIATIVE",90);
+  if(pt){h+=`<circle cx="${pt[0]}" cy="${pt[1]}" r="11" fill="var(--fg)" fill-opacity=".18"/><circle cx="${pt[0]}" cy="${pt[1]}" r="6" fill="var(--fg)" stroke="var(--bg)" stroke-width="2"/>`;}
+  document.getElementById("map").innerHTML=h;
+}
+
+function render(){
+  const n=ans.filter(Boolean).length;
+  document.getElementById("prog").style.width=(n/12*100)+"%";
+  document.getElementById("count").textContent=`${n} of 12 answered`;
+  ans.forEach((v,i)=>document.getElementById("q"+i).classList.toggle("done",!!v));
+  const tot=S.map(s=>s.items.reduce((a,i)=>a+ans[i],0));
+  const complete=n===12, max=Math.max(...tot);
+  S.forEach((s,j)=>{
+    const r=document.getElementById("r-"+s.k);
+    r.querySelector(".fill").style.width=(tot[j]/15*100)+"%";
+    r.querySelector(".val").textContent=s.items.some(i=>ans[i])?`${tot[j]}/15`:"–";
+    const top=complete&&tot[j]===max;
+    r.classList.toggle("top",top);document.getElementById("c-"+s.k).classList.toggle("top",top);
+  });
+  const lead=document.getElementById("lead");
+  if(!complete){lead.textContent=`Answer all twelve statements to see your style. ${12-n} to go.`;drawMap(null);return;}
+  const tops=S.filter((s,j)=>tot[j]===max).map(s=>s.name);
+  const sorted=[...tot].sort((a,b)=>b-a), gap=sorted[0]-sorted[1];
+  let extra = tops.length>1 ? " You're a blend, tied across these styles." : gap<=1 ? ` It's close: ${S[tot.indexOf(sorted[1])].name} is right behind.` : "";
+  lead.innerHTML=`You're most likely a <strong>${tops.join(" / ")}</strong>.${extra}`;
+  // position: affiliative = Magnet+Sweetheart vs aggressive = Sniper+Stand-Up; expressive = Magnet+Stand-Up vs subtle = Sniper+Sweetheart. Range ±24.
+  const aff=(tot[0]+tot[3])-(tot[1]+tot[2]), exp=(tot[0]+tot[2])-(tot[1]+tot[3]);
+  drawMap([160+aff/24*118, 160-exp/24*118]);
+}
+
+document.getElementById("copy").addEventListener("click",()=>{
+  const tot=S.map(s=>s.items.reduce((a,i)=>a+ans[i],0));
+  const txt="My Humor Styles Mini Quiz answers: "+ans.map((v,i)=>`Q${i+1}=${v||"-"}`).join(", ")+"\nScores: "+S.map((s,j)=>`${s.name} ${tot[j]}/15`).join(", ");
+  const done=()=>{document.getElementById("copied").hidden=false};
+  navigator.clipboard?.writeText(txt).then(done,()=>{window.getSelection().selectAllChildren(document.getElementById("scores"));done()}) ?? done();
+});
+document.getElementById("reset").addEventListener("click",()=>{ans.fill(0);save();form.querySelectorAll("input").forEach(x=>x.checked=false);document.getElementById("copied").hidden=true;render();window.scrollTo({top:0,behavior:"smooth"})});
+render();
+</script>
